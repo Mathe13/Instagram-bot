@@ -67,7 +67,8 @@ class instagramCrawler():
         self.wait(tempo)
         return self.driver.execute_script("return document.body.scrollTop;")
 
-    def wait(self, tempo):
+    @staticmethod
+    def wait(tempo):
         """Espera um determinado tempo."""
         inicio = time.time()
         while True:
