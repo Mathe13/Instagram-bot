@@ -22,9 +22,15 @@ class intagramBot():
         input_name = self.driver.find_element(By.NAME, 'username')
         input_senha = self.driver.find_element(By.NAME, 'password')
         login_button = self.driver.find_element(By.CSS_SELECTOR, '._qv64e')
+
         input_name.send_keys(name)
         input_senha.send_keys(senha)
         login_button.click()
+
+        while True:
+            url_now = self.driver.current_url
+            if url_now == 'https://www.instagram.com/':
+                break
         try:
             self.driver.get(
                 'https://www.instagram.com/explore/tags/' + hashtag)
@@ -69,13 +75,15 @@ class intagramBot():
     def get_posts(self):
         """Pega o link das foto disponiveis no dom."""
         print('get the posts')
-        raw = self.driver.find_elements(By.CSS_SELECTOR,
-                                        '._mck9w._gvoze._tn0ps a')
+        raw = self.driver.find_elements_by_css_selector(
+            '._mck9w._gvoze._tn0ps > a')
         if raw:
-            print('pegando o link dos posts')
+
+            # print('pegando o link dos posts')
             for post in raw:
+                # print(post)
                 self.posts.append(post.get_attribute('href'))
-                print(self.posts.append(post.get_attribute('href')))
+                # print(post.get_attribute('href'))
         else:
             print(
                 'Nenhum Post encontrado, Verifique se é uma hashtag utilizada')
