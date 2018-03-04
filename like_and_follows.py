@@ -17,7 +17,6 @@ class intagramBot():
         self.driver = webdriver.Firefox()
 
         self.hashtags = []
-        # self.takeTopHashtags()
 
         self.scroll_size = str(
             self.driver.execute_script("return document.body.scrollHeight;"))
@@ -298,8 +297,10 @@ class intagramBot():
         self.unfollow_all()
 
     def run(self, thresholdPosts):
+        self.takeTopHashtags()
         self.doLogin()
-        self.unfollow_all()
+        # self.unfollow_all()
+
         self.posts = []
         self.qtdHashtags = 0
 
