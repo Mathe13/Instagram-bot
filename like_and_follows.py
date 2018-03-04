@@ -40,7 +40,7 @@ class intagramBot():
         except Exception as e:
             print('erro ao abrir link')
             self.error_details(e)"""
-
+        # self.logout() #teste do logout
         self.posts = []
         self.scroll_size = str(
             self.driver.execute_script("return document.body.scrollHeight;"))
@@ -105,6 +105,8 @@ class intagramBot():
     def doLikesAndFollows(self):
         print('Exec doLikesAndFollows')
         if (self.posts):
+            print('clean duplicate ones')
+            self.posts = list(set(self.posts))
             for post in self.posts:
 
                 try:
@@ -162,6 +164,15 @@ class intagramBot():
                         if not self.verify_if_is_liked() == False:
                             break
 
+    def logout(self):
+        self.driver.get("https://www.instagram.com/" + name + "/")
+        self.wait(5)
+        self.driver.find_element_by_css_selector('._q8y0e').click()
+        # botão q abre o modal de logout
+        self.wait(2)
+        botoes = self.driver.find_elements_by_css_selector('._o2wxh > button')
+        botoes[3].click()
+
     def verify_if_is_liked(self):
         try:
             liked = self.driver.find_element_by_css_selector(
@@ -180,6 +191,7 @@ class intagramBot():
             return False
 
     def run(self, thresholdPosts):
+        # self.takeTopHashtags()
         for hashtag in self.hashtags:
             try:
                 self.driver.get(
