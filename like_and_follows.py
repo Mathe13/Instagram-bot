@@ -58,6 +58,9 @@ class intagramBot():
             url_now = self.driver.current_url
             if url_now == 'https://www.instagram.com/':
                 break
+            # as vezes vem pra essa url aqui
+            elif url_now == 'https://www.instagram.com/#reactivated':
+                self.driver.get('https://www.instagram.com/')
 
     def doLogout(self):
         self.driver.get("https://www.instagram.com/" + name + "/")
@@ -263,6 +266,9 @@ class intagramBot():
         number = (following_number[2].text)
         number_following = int(number.replace(',', ''))
         print('\t\tNumber of followers: ', number_following)
+        if number_following == 0:
+            print('não estou seguindo ninguem')
+            return
         following_button[2].click()
         while True:
             try:
@@ -276,25 +282,54 @@ class intagramBot():
 
         # self.wait(2)
 
-        while True:
-            unfollow_buttons = self.driver.find_elements_by_css_selector(
-                'button._qv64e._t78yp._4tgw8._njrw0')
-            if (number_following > 0):
-                for unfollow_button in unfollow_buttons:
-                    self.wait(0.5)
-                    unfollow_button.click()
-                    while True:
-                        # print('teste')
+        unfolow_links = []
+        while (len(unfolow_links) == 0):
+            unfolow_links_raw = self.driver.find_elements_by_css_selector(
+                'a._2g7d5.notranslate._o5iw8')
+            for link in unfolow_links_raw:
+                unfolow_links.append(link.get_attribute('href'))
 
-                        if (unfollow_button.is_enabled()) and (
-                            (unfollow_button.text == "Seguir") or
-                                (unfollow_button.text == 'Follow')):
-                            number_following -= 1
-                            break
-            else:
-                print('\t\tstop the unfollow')
-                break
+        self.unfollow_all_links(unfolow_links)
         self.unfollow_all()
+
+    def unfollow_all_links(self, links):
+        for link in links:
+            abriu = False
+            try:
+                self.driver.get(link)
+                abriu = True
+            except:
+                print('erro ao abrir perfil')
+                print(link)
+            if abriu == True:
+                while True:
+                    try:
+                        unfollow_button = self.driver.find_element_by_css_selector(
+                            'button._qv64e._t78yp._r9b8f._njrw0')
+                        if unfollow_button.is_enabled():
+                            unfollow_button.click()
+                            inicio = time.time()
+                            while True:
+                                if (unfollow_button.is_enabled()) and (
+                                    (unfollow_button.text == "Seguir") or
+                                        (unfollow_button.text == 'Follow')):
+                                    break
+                                if time.time() - inicio > 5:
+                                    break
+                            break
+                    except:
+                        pass
+                # unfollow_button.click()
+                # while True:
+                #     if (unfollow_button.is_enabled()) and (
+                #         (unfollow_button.text == "Seguir") or
+                #             (unfollow_button.text == 'Follow')):
+                #         break
+                print('deixando de seguir:', link)
+        # self.doLogout()
+        # self.driver.close()
+        # self.driver = webdriver.Firefox()
+        # self.doLogin()
 
     def run(self, thresholdPosts):
         self.takeTopHashtags()
