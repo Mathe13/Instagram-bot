@@ -61,7 +61,7 @@ class intagramBot():
             # as vezes vem pra essa url aqui
             elif url_now == 'https://www.instagram.com/#reactivated':
                 self.driver.get('https://www.instagram.com/')
-            elif (time.time - tempo_antes_login >
+            elif (time.time() - tempo_antes_login >
                   5) and url_now == 'https://www.instagram.com/accounts/login':
                 login_button.click()
 
