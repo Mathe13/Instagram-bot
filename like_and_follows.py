@@ -14,7 +14,7 @@ class intagramBot():
     """Classe pra baixar fotos de um perfil publico."""
 
     def __init__(self):
-        self.driver = webdriver.Firefox()
+        self.driver = webdriver.Chrome()
 
         self.hashtags = []
 
@@ -61,6 +61,9 @@ class intagramBot():
             # as vezes vem pra essa url aqui
             elif url_now == 'https://www.instagram.com/#reactivated':
                 self.driver.get('https://www.instagram.com/')
+            elif (time.time - tempo_antes_login >
+                  5) and url_now == 'https://www.instagram.com/accounts/login':
+                login_button.click()
 
     def doLogout(self):
         self.driver.get("https://www.instagram.com/" + name + "/")
@@ -205,15 +208,18 @@ class intagramBot():
                                     self.doLogout()
                                     print('\t\t\tRestart the window')
                                     self.driver.close()
-                                    self.driver = webdriver.Firefox()
+                                    self.driver = webdriver.Chrome()
                                     print('\t\t\tDo the login')
                                     self.doLogin()
                                     print('\t\t\tGo back for the post')
                                     self.driver.get(url_now)
+                                    # tem um erro abaixo daqui que ocorre quando
+                                    # o post não existe
                                     break
                                 pass
 
                     try:
+
                         liked = self.driver.find_element_by_css_selector(
                             '._eszkz._l9yih>span._8scx2.coreSpriteHeartFull'
                         )  # se encontrar significa que ainda n foi curtido
@@ -264,6 +270,7 @@ class intagramBot():
                 pass
 
         number = (following_number[2].text)
+        number = number.replace('.', '')
         number_following = int(number.replace(',', ''))
         print('\t\tNumber of followers: ', number_following)
         if number_following == 0:
@@ -328,7 +335,7 @@ class intagramBot():
                 print('deixando de seguir:', link)
         # self.doLogout()
         # self.driver.close()
-        # self.driver = webdriver.Firefox()
+        # self.driver = webdriver.Chrome()
         # self.doLogin()
 
     def run(self, thresholdPosts):
