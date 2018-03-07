@@ -1,19 +1,18 @@
+"""Bot de likes and follows."""
 from selenium import webdriver
-import requests
 import time
-import os
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import NoSuchElementException
 name = 'superbot1300'
 senha = 'passwordprojeto'
 
 
 class intagramBot():
-    """Classe pra baixar fotos de um perfil publico."""
+    """Classe principal do projeto."""
 
-    def __init__(self):
+    def __init__(self, username, password):
+        """Inicializador do objeto."""
+        self.username = username
+        self.password = password
         self.driver = webdriver.Chrome()
 
         self.hashtags = []
@@ -31,6 +30,7 @@ class intagramBot():
             pass
 
     def doLogin(self):
+        """Faz login no instagram."""
         print('Do login')
         self.driver.get('https://www.instagram.com/accounts/login/')
         # self.wait(5)
@@ -41,14 +41,14 @@ class intagramBot():
                 login_button = self.driver.find_element(
                     By.CSS_SELECTOR, '._qv64e')
 
-                if login_button.is_enabled() and input_name.is_enabled(
-                ) and input_senha.is_enabled():
+                if (login_button.is_enabled() and input_name.is_enabled()
+                        and input_senha.is_enabled()):
                     break
             except:
                 pass
 
-        input_name.send_keys(name)
-        input_senha.send_keys(senha)
+        input_name.send_keys(self.username)
+        input_senha.send_keys(self.password)
         login_button.click()
 
         print('\tsend form login')
@@ -66,6 +66,7 @@ class intagramBot():
                 login_button.click()
 
     def doLogout(self):
+        """Faz logout no instagram."""
         self.driver.get("https://www.instagram.com/" + name + "/")
         # self.wait(5)
         while True:
@@ -92,7 +93,7 @@ class intagramBot():
         botoes[3].click()
 
     def takeTopHashtags(self):
-        """Pega as # dispoiveis no dom"""
+        """Pega as # mais usadas."""
         self.driver.get('https://top-hashtags.com/instagram/')
         print('take top #')
         raw = self.driver.find_elements_by_css_selector(
@@ -144,115 +145,135 @@ class intagramBot():
             print(
                 'Nenhum Post encontrado, Verifique se é uma hashtag utilizada')
 
+    def doRestart(self):
+        """Faz logout, fecha o driver, abre dnv e faz login."""
+        print('\t\t\tDo the logout')
+
+        self.doLogout()
+        print('\t\t\tRestart the window')
+        self.driver.close()
+        self.driver = webdriver.Chrome()
+        print('\t\t\tDo the login')
+        self.doLogin()
+
     def doLikesAndFollows(self):
+        """Função principal, dá like e segue os posts."""
         print('Exec doLikesAndFollows')
         print(
             '\tQuantidade de links a ser processados: ' + str(len(self.posts)))
-        if (self.posts):
-            i = 0
-            for post in self.posts:
-                i += 1
-                print('\t\tPost ' + str(i) + '\n\t\t\tLink: ' + post)
-                try:
-                    self.driver.get(post)
-                except Exception as e:
-                    print('erro ao abrir link')
-                    self.error_details(e)
+        if not (self.posts):
+            print('não existem posts')
+            return False
+        i = 0
+        for post in self.posts:
+            i += 1
+            print('\t\tPost ' + str(i) + '\n\t\t\tLink: ' + post)
+            try:
+                self.driver.get(post)
+            except Exception as e:
+                print('erro ao abrir link')
+                self.error_details(e)
 
-                try:
-                    pageErr = self.driver.find_element_by_css_selector(
-                        '.error-container.-cx-PRIVATE-ErrorPage__errorContainer'
-                    )  # Se encontrar significa q houve um erro na pagina
-                except:
-                    pageErr = False
+            try:
+                pageErr = self.driver.find_element_by_css_selector(
+                    '.error-container.-cx-PRIVATE-ErrorPage__errorContainer')
+                # Se encontrar significa q houve um erro na pagina
+            except:
+                pageErr = False
 
-                if (pageErr == False):
-                    try:
-                        followed = self.driver.find_element_by_css_selector(
-                            '._qv64e._jqf0k._4tgw8._njrw0'
-                        )  # Se encontrar significa q ja está followed
-                        print('\t\t\tThis profile has been follow')
-                    except:
-                        followed = False
+            if (pageErr):
+                print('erro na pagina')
+            else:
+                self.follow()
 
-                    if (followed == False):
-                        follow_button = self.driver.find_element_by_css_selector(
-                            '._qv64e._iokts._4tgw8._njrw0'
-                        )  # botao de seguir //isto é um buttom (tag buttun)
-                        followed = True
-                        while True:
-                            if follow_button.is_enabled():
-                                break
-                        follow_button.click()
-                        while True:
-                            if follow_button.is_enabled():
-                                break
-                        inicio = time.time()
+                self.like_post()
 
-                        while True:
-                            try:
-                                followed_button = self.driver.find_element_by_css_selector(
-                                    '._qv64e._jqf0k._4tgw8._njrw0')
-                                if followed_button.is_enabled():
-                                    print('\t\t\tFollowed @' + str(
-                                        self.driver.
-                                        find_element_by_css_selector(
-                                            '._eeohz>a._2g7d5.notranslate._iadoq'
-                                        ).text))
-                                    break
-                            except:
-                                if time.time(
-                                ) - inicio > 5:  # se nao mudou em 5 segundos, vai pro proximo, normalmente se nao mudou é pq que levou block follow
-                                    print('\t\t\tDo the logout')
-                                    url_now = self.driver.current_url
-                                    self.doLogout()
-                                    print('\t\t\tRestart the window')
-                                    self.driver.close()
-                                    self.driver = webdriver.Chrome()
-                                    print('\t\t\tDo the login')
-                                    self.doLogin()
-                                    print('\t\t\tGo back for the post')
-                                    self.driver.get(url_now)
-                                    # tem um erro abaixo daqui que ocorre quando
-                                    # o post não existe
-                                    break
-                                pass
-
-                    try:
-
-                        liked = self.driver.find_element_by_css_selector(
-                            '._eszkz._l9yih>span._8scx2.coreSpriteHeartFull'
-                        )  # se encontrar significa que ainda n foi curtido
-                        print('\t\t\tThis photo is already there')
-                    except:
-                        liked = False
-
-                    if (liked == False):
-                        like_button = self.driver.find_element_by_css_selector(
-                            '._eszkz._l9yih'
-                        )  # botao de like //isto é um link (uma tag a)
-                        liked = True
-                        while True:
-                            if like_button.is_enabled():
-                                break
-                        like_button.click()
-
-                        print('\t\t\tLiked the photo')
-
-                    while True:
-                        if not self.verify_if_is_liked() == False:
-                            break
-
-    def verify_if_is_liked(self):
+    def like_post(self):
+        """Dá like."""
         try:
+
             liked = self.driver.find_element_by_css_selector(
                 '._eszkz._l9yih>span._8scx2.coreSpriteHeartFull'
             )  # se encontrar significa que ainda n foi curtido
+            print('\t\t\tThis photo is already there')
+        except:
+            liked = False
+
+        if not liked:
+            like_button = self.driver.find_element_by_css_selector(
+                '._eszkz._l9yih')  # botao de like //isto é um link (uma tag a)
+            liked = True
+            while True:
+                if like_button.is_enabled():
+                    break
+            like_button.click()
+
+            print('\t\t\tLiked the photo')
+
+        while True:
+            if self.verify_if_is_liked():
+                break
+
+    def follow(self):
+        """Dá follow."""
+        try:
+            followed = self.driver.find_element_by_css_selector(
+                '._qv64e._jqf0k._4tgw8._njrw0')
+            # Se encontrar significa q ja está followed
+            print('\t\t\tThis profile has been follow')
+        except:
+            followed = False
+
+        if not followed:
+            follow_button = self.driver.find_element_by_css_selector(
+                '._qv64e._iokts._4tgw8._njrw0')
+            # botao de seguir //isto é um buttom (tag buttun)
+            followed = True
+            while True:
+                if follow_button.is_enabled():
+                    break
+            follow_button.click()
+            while True:
+                if follow_button.is_enabled():
+                    break
+            inicio = time.time()
+
+            while True:
+                try:
+                    followed_button = self.driver.find_element_by_css_selector(
+                        '._qv64e._jqf0k._4tgw8._njrw0')
+                    if followed_button.is_enabled():
+                        print('\t\t\tFollowed @' + str(
+                            self.driver.find_element_by_css_selector(
+                                '._eeohz>a._2g7d5.notranslate._iadoq').text))
+                        break
+                except:
+                    # se nao mudou em 5 segundos, vai pro proximo,
+                    # normalmente se nao mudou é pq que levou block follow
+                    if time.time() - inicio > 5:
+                        url_now = self.driver.current_url
+                        self.doRestart()
+                        print('\t\t\tGo back for the post')
+                        self.driver.get(url_now)
+
+                        # tem um erro abaixo daqui que ocorre quando
+                        # o post não existe
+                        break
+                    pass
+
+    def verify_if_is_liked(self):
+        """Verifica se um post já foi curtido."""
+        try:
+            self.driver.find_element_by_css_selector(
+                '._eszkz._l9yih>span._8scx2.coreSpriteHeartFull')
+            # se encontrar significa que ainda n foi curtido
         except:
             return False
         return True
 
     def unfollow_all(self):
+        """Para de seguir todo mundo."""
+        # TODO barrar shadowban no unfollow
 
         print('Unfollowing all')
         self.driver.get('https://www.instagram.com/' + name + '/')
@@ -300,6 +321,7 @@ class intagramBot():
         self.unfollow_all()
 
     def unfollow_all_links(self, links):
+        """Entra em um serie de perfis e para de seguilos."""
         for link in links:
             abriu = False
             try:
@@ -308,7 +330,7 @@ class intagramBot():
             except:
                 print('erro ao abrir perfil')
                 print(link)
-            if abriu == True:
+            if abriu:
                 while True:
                     try:
                         unfollow_button = self.driver.find_element_by_css_selector(
@@ -339,6 +361,7 @@ class intagramBot():
         # self.doLogin()
 
     def run(self, thresholdPosts):
+        """Função q 'roda' o bot."""
         self.takeTopHashtags()
         self.doLogin()
         # self.unfollow_all()
@@ -353,8 +376,13 @@ class intagramBot():
             except Exception as e:
                 print('erro ao abrir link')
                 self.error_details(e)
-
-            footer = self.driver.find_element(By.TAG_NAME, 'footer')
+            while True:
+                try:
+                    footer = self.driver.find_element(By.TAG_NAME, 'footer')
+                    if footer:
+                        break
+                except:
+                    pass
             self.numberOfPosts = 0
             self.qtdHashtags += 1
             print('Select ' + hashtag + ' number ' + str(self.qtdHashtags) +
@@ -380,7 +408,7 @@ def main():
     # thresholdTimeLike = float(input('adicione aqui o tempo de delay entre curtir e proxima postagem (em s):'))
     thresholdPost = int(input('adicione aqui o limite de posts para buscar:'))
 
-    teste = intagramBot()
+    teste = intagramBot(name, senha)
     teste.run(thresholdPost)
 
 
