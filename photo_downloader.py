@@ -18,7 +18,7 @@ class instagramCrawler():
 
     def __init__(self, username, path):
         """Abre o browser no perfil e inicializa post."""
-        self.driver = webdriver.Firefox()
+        self.driver = webdriver.Chrome()
         try:
             self.driver.get('https://www.instagram.com/' + username)
         except Exception as e:
@@ -78,7 +78,8 @@ class instagramCrawler():
     def get_posts(self):
         """Pega o link das foto disponiveis no dom."""
         print('get the posts')
-        raw = self.driver.find_elements(By.CLASS_NAME, "_2di5p")
+        raw = self.driver.find_elements(
+            By.XPATH, '//*[@id="react-root"]/section/main/div/div/article/div/div/div/div/a/div/div/img')
         if raw:
             print('pegando o src das imagens')
             for post in raw:
